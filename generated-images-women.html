@@ -997,6 +997,7 @@ const SCN2 = [
  why:'复古车做半个画框，撑起「周末出城」的叙事；西装与度假短裤都成立，是站内跑得最稳的叙事型背景。',
  enT:'Vertical 2:3 photograph of an empty vintage car scene used as a womenswear shooting background. A wall of warm brown vertical timber slats with a row of dark rectangular window panes high up fills the background, and the ground is plain grey concrete. A black vintage sedan is parked at the left edge with its boot lid open, the chrome rear bumper catching a soft highlight, occupying the left third only. The rest of the set is completely empty. Soft daylight from the upper left at a moderate ratio, shadows falling softly to the rear right. The palette is warm brown, cream and concrete grey. The mood is retro, relaxed and editorial. Shot at chest height with a 50mm lens, realistic photographic texture.',
  cnT:'竖版空景：复古车场景。背景是暖棕竖条木板墙、上方一排深色矩形窗格，地面为素水泥。左侧三分之一停一辆黑色复古轿车、后备箱敞开、镀铬保险杠有一道柔和高光，其余区域完全留空。左上方柔和日光、中等光比，影子朝右后方。色调暖棕、奶油与水泥灰，情绪复古、松弛、有杂志感。机位在胸高、50mm 镜头。'},
+
 {id:'S14', g:1, t:'棚拍·木纹背景墙', en:'Timber Wall Studio',
  cats:['●'],
  why:'暖木纹压住画面，深色与棕色系（麂皮、灯芯绒、针织）在这面墙上最出质感，比纯白棚拍贵一档。',
@@ -1996,7 +1997,8 @@ function lowerPoseNoteEn(){
 }
 function lowerPoseNoteCn(){
   if(!isLowerCat(catNow()) || !SEATED_POSE(P3.pose)) return '';
-  return '这件商品按站立剪裁来判定：坐下时布料在胯部与膝部会自然堆叠，但裤长、裤型收放、腰头高度与结构必须与参考图完全一致。';}
+  return '这件商品按站立剪裁来判定：坐下时布料在胯部与膝部会自然堆叠，但裤长、裤型收放、腰头高度与结构必须与参考图完全一致。';
+}
 function faceVisible(){
   const k = framePlan().key;
   return !(k==='lower' || k==='back' || k==='backq');
