@@ -43,7 +43,9 @@
     const model = crop === 'lower'
       ? (cn ? '一位成年' + person + '，体型：' + c.buildCn + '。只呈现腰部以下，不描述脸部或发型。'
         : 'One adult ' + person + ' with ' + c.buildEn + '. Only the body below the waist is visible.')
-      : (cn ? c.personaCn : c.personaEn);
+      : c.back
+        ? (cn ? '一位成年' + person + '，体型：' + c.buildCn + '。背对镜头，面部不可见。' : 'One adult ' + person + ' with ' + c.buildEn + ', seen from behind with the face hidden.')
+        : (cn ? c.personaCn : c.personaEn);
     const ref = cn
       ? '以随附的商品参考图为依据，保留可见的版型、颜色、面料纹理、口袋、纽扣和图案位置。只改变人物、动作、背景和光线。不可见的商品细节不做确定性改造；需要展示另一面时请补充对应参考图。保留商品原有标识，不新增文字或标识。'
       : 'Use the accompanying product reference as the garment specification. Preserve its visible cut, colour, fabric texture, pockets, buttons and pattern placement. Change only the person, action, setting and light. Do not invent hidden design details; request another reference view when needed. Preserve existing product markings; add no new text or marks.';
@@ -62,6 +64,7 @@
       '商品：' + (c.mode === 'reference' ? ref : product + '。保留描述中的颜色、版型与材质。'),
       '人物：' + model,
       '动作：' + c.poseCn + '。' + (c.seated ? '保留支撑身体的座面或台阶，以及真实接触阴影。' : ''),
+      c.back ? '展示方向：相机正对人物背面，人物身体和头部均背对镜头，不回头、不转向正面。清晰展示商品后腰、臀部轮廓、后侧缝与裤脚；后口袋和图案仅按背面参考图还原，不自行新增。' : '',
       '场景与光线：' + scene(c.sceneCn, true),
       '构图：' + frame,
       !hiddenFace ? '表情：' + c.moodCn + '。' : '',
@@ -73,6 +76,7 @@
       'GARMENT: ' + (c.mode === 'reference' ? ref : product + '. Preserve the specified colour, cut and material.'),
       'SUBJECT: ' + model,
       'ACTION: The subject ' + c.poseEn + '.' + (c.seated ? ' Include the supporting seat or step and realistic contact shadows.' : ''),
+      c.back ? 'VIEW: Straight rear view. Both the body and head face away from the camera; do not turn towards the lens or reveal the face. Clearly show the rear waistband, seat silhouette, rear seams and hems. Reproduce back pockets and patterns only when supported by the rear product reference; add no invented details.' : '',
       'SETTING AND LIGHT: ' + scene(c.sceneEn, false),
       'FRAMING: ' + frame,
       !hiddenFace ? 'EXPRESSION: ' + c.moodEn + '.' : '',

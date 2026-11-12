@@ -148,3 +148,24 @@ test('gender normalization preserves freeform product descriptions and notes', (
   const cn = engine.build({ ...base, gender:'women', mode:'text', productCn:'吉他印花长裤', noteCn:'其他细节保持一致' }, 'cn');
   assert.match(cn, /吉他印花/); assert.match(cn, /其他细节/);
 });
+
+test('rear views keep the camera behind the subject for every crop and gender', () => {
+  for (const file of ['generated-images.html', 'generated-images-women.html']) {
+    const app = runtime(file);
+    assert.equal(app.run("POSIMG.P13"), './assets/views/back.svg');
+    if (file.includes('women')) assert.equal(app.run("IMG('MC-01','back','A2','B1')"), './assets/views/back.svg');
+    for (const frame of ['full', 'auto', 'lower']) {
+      app.run("Object.assign(P3,{pose:'P13',frame:'" + frame + "'});");
+      const en = app.run('enPrompt()'), cn = app.run('cnPrompt()');
+      assert.match(en, /Straight rear view/); assert.match(en, /do not turn towards the lens/);
+      assert.match(cn, /身体和头部均背对镜头/); assert.match(cn, /不回头/);
+      assert.doesNotMatch(en, /EXPRESSION:|Hair:|Eyes:|Face:|head barely turned/);
+      assert.doesNotMatch(cn, /表情：|发型：|眼睛：/);
+      assert.doesNotMatch(en, /undefined|NaN/);
+    }
+    app.run("Object.assign(P3,{pose:'P1',frame:'full'});");
+    assert.doesNotMatch(app.run('enPrompt()'), /Straight rear view/);
+    app.run("Object.assign(P3,{pose:'P8',frame:'full'});");
+    assert.doesNotMatch(app.run('enPrompt()'), /Straight rear view/);
+  }
+});

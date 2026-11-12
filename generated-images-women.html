@@ -590,7 +590,7 @@ const POSE_PHOTOS = {
  'P10':'https://images.pexels.com/photos/6599121/pexels-photo-6599121.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P11':'https://images.pexels.com/photos/7752438/pexels-photo-7752438.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P12':'https://images.pexels.com/photos/7752456/pexels-photo-7752456.jpeg?auto=compress&cs=tinysrgb&w=500',
- 'P13':'https://images.pexels.com/photos/7275390/pexels-photo-7275390.jpeg?auto=compress&cs=tinysrgb&w=500',
+ 'P13':"./assets/views/back.svg",
  'P14':'https://images.pexels.com/photos/7544666/pexels-photo-7544666.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P15':'https://images.pexels.com/photos/7275390/pexels-photo-7275390.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P16':'https://images.pexels.com/photos/7626600/pexels-photo-7626600.jpeg?auto=compress&cs=tinysrgb&w=500',
@@ -598,7 +598,7 @@ const POSE_PHOTOS = {
  'P18':'https://images.pexels.com/photos/28386380/pexels-photo-28386380.jpeg?auto=compress&cs=tinysrgb&w=500'
 };
 const ANGIMG = new Proxy({}, {get:(_,eth)=>new Proxy({}, {get:(_,ang)=>new Proxy({}, {
- get:(_,variant)=>MODEL_PHOTOS[eth] || MODEL_PHOTOS['MC-01']
+ get:(_,variant)=>ang==='back' ? './assets/views/back.svg' : (MODEL_PHOTOS[eth] || MODEL_PHOTOS['MC-01'])
 })})});
 const POSIMG = new Proxy({}, {get:(_,pose)=>POSE_PHOTOS[pose] || MODEL_PHOTOS['MC-01']});
 const SCNIMG = {"S1": "./assets/gallery/140ace51d5927640da95.jpg", "S2": "./assets/gallery/c3017d70427439311627.jpg", "S3": "./assets/gallery/2688424ad4337c72939e.jpg", "S5": "./assets/gallery/2d93866932278f9ec8df.jpg", "S6": "./assets/gallery/1acf2e6184d5449474c9.jpg", "S9": "./assets/gallery/2b83a0986c2140d9ba00.jpg", "S10": "./assets/gallery/9fccbce8f2796f18db8d.jpg", "S13": "./assets/gallery/86d818a4bbc4e7959a23.jpg", "S14": "./assets/gallery/f246c481ad3281d05526.jpg", "S15": "./assets/gallery/9d6445021702a46e8792.jpg", "S17": "./assets/gallery/8c5bacf660818c32b2fd.jpg", "S19": "./assets/gallery/f399a5172c1af7014809.jpg", "S20": "./assets/gallery/e3be1c5c22201eabf640.jpg", "S23": "./assets/gallery/60b0efa05b7427944981.jpg", "S34": "./assets/gallery/3af0f6676604e0b70634.jpg", "S35": "./assets/gallery/06f1ac0c2fc232ff09e9.jpg", "S37": "./assets/gallery/9430575e1c52a537cf64.jpg", "S38": "./assets/gallery/374db93eb1ff2b1a26cf.jpg", "S39": "./assets/gallery/c39fb6537134e59c8bf3.jpg", "S40": "./assets/gallery/823823cf56372195afcf.jpg", "S41": "./assets/gallery/672f32fbf954eeecb01b.jpg", "S42": "./assets/gallery/61b8434c5ef47418d1c3.jpg", "S44": "./assets/gallery/ad2d41b027a542711b2d.jpg", "S45": "./assets/gallery/95340f486e786d05d896.jpg", "S47": "./assets/gallery/0d38aa984e88a80d0d18.jpg", "S48": "./assets/gallery/052e7f4bd8c6ed35bd66.jpg"};
@@ -740,7 +740,7 @@ const POSES = [
  {id:'P10', name:'双手抱臂', en:'stands with both arms folded across her chest, shoulders relaxed and level', cn:'站立，双臂交叠抱在胸前，肩膀放松、下巴放平，直视镜头'},
  {id:'P11', name:'整理领口', en:'stands with one hand raised to the collar, thumb and forefinger pinching the top button and easing the collar straight, the elbow lifted out from the body, chin held slightly away from the hand', cn:'站立，一只手抬到领口、拇指与食指捏住最上面那颗扣子把领口理顺，手肘离开身体，下巴略偏开那只手'},
  {id:'P12', name:'侧身站立', en:'stands side-on to the camera in profile with her arms relaxed, weight even on both feet', cn:'侧身对着镜头、呈正侧面，双臂放松，双脚均匀受力'},
- {id:'P13', name:'背身站立', en:'stands with her back to the camera, head barely turned so the shoulder line and back panel read clearly', cn:'背对镜头站立，头几乎不回，让肩线与后背版型清楚呈现'},
+ {id:'P13', name:'背身站立', en:'stands with the back directly facing the camera, head facing away without turning, arms relaxed at the sides so the rear waistband and trouser silhouette stay visible', cn:'背对镜头站立，头朝前方、不回头，双臂自然垂放，让后腰与裤腿轮廓清楚呈现'},
  {id:'P14', name:'叉腰站立', en:'stands with both hands planted on her hips, elbows out, chest open and chin up', cn:'站立，双手叉在腰上、手肘外张、胸廓打开、下巴微抬'},
  {id:'P15', name:'抬手理头发', en:'stands with one hand lifted to her hair as if smoothing it back, the elbow held away from the body', cn:'站立，一只手抬起来理头发，手肘离开身体'},
  {id:'P16', name:'台阶坐姿', en:'sits relaxed on a low step or ledge, knees slightly apart, forearms resting on her thighs with her hands loosely settled, weight carried down through the hips, spine upright but easy, shoulders relaxed and not hunched, looking towards the camera', cn:'自然坐在低矮的台阶或台沿上，膝盖略微分开，前臂搭在大腿上、双手松松地放着，重心落在胯部，脊背立起但不僵，肩部放松不下塌，看向镜头'},
@@ -1365,6 +1365,7 @@ const MXCODE = {'MC-01':'EUW','MC-02':'BLK','MC-03':'EAS','MC-04':'LAT','MC-05':
 const MXAGE = {A1:'25', A2:'35', A3:'45'};
 const mkKey = (e,a,b)=> (MXCODE[e]||'EUW')+'-'+(MXAGE[a]||'35')+'-'+(b==='B2'?'MUS':'NOR');
 const IMG = (eth, ang, age, build) => {
+  if (ang === 'back') return './assets/views/back.svg';
   const code = MODEL_PHOTOS[eth] ? eth : 'MC-01';
   return MODEL_PHOTOS[code];
 };

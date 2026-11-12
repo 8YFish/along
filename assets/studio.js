@@ -82,7 +82,7 @@
     const sc = scNow(), po = posOf(P3.pose), features = catFeat();
     return {
       gender: female ? 'women' : 'men', ...extra, noteCn: P3.outfit || '',
-      crop, back: ['P8', 'P13', 'P18'].includes(P3.pose), pose: P3.pose, poseName: po.name,
+      crop, back: P3.pose === 'P13', pose: P3.pose, poseName: po.name,
       poseZone: (POSE_VAR[P3.pose] || {}).zone, noWall: noWall(), lowerProduct: isLowerCat(catNow()),
       hasCuff: !!features.cuff, hasCollar: !!features.collar, seated: ['P6', 'P16'].includes(P3.pose),
       buildCn: buildOf(P3.build).cn, buildEn: buildOf(P3.build).en,
@@ -109,9 +109,12 @@
     setOptions(el('quickScene'), pool.map(i => ({ value: i, label: SCN[i].t })), P3.scene);
     el('quickPersonImage').src = IMG(P3.eth, 'full', P3.age, P3.build);
     el('quickPoseImage').src = POSIMG[P3.pose] || IMG(P3.eth, POSE_ANG[P3.pose] || 'full');
+    el('quickPoseImage').alt = P3.pose === 'P13' ? '背面展示构图示意：背对镜头，不回头' : '动作示意，实际画面由出图工具生成';
+    document.querySelectorAll('[data-view-pose]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.viewPose === P3.pose)));
+    el('backReferenceHint').hidden = P3.pose !== 'P13';
     el('quickSceneImage').src = SCNIMG[scNow().id] || '';
     el('personDescription').textContent = ageOf(P3.age).short + ' · ' + buildOf(P3.build).name.split(' ')[0] + '；年龄和体型可在详细设置中调整。';
-    const poseTips = { P1: '展示整体版型，遮挡较少。', P2: '表现裤腿垂感和自然动态。', P3: '表现休闲穿搭；请确认商品有口袋。', P6: '生活氛围更强，腰腹和膝盖会出现褶皱。', P12: '展示侧面轮廓与侧缝。', P13: '展示背面版型；建议提供商品背面参考图。', P16: '展示坐姿搭配，保留台阶和接触阴影。' };
+    const poseTips = { P1: '展示整体版型，遮挡较少。', P2: '表现裤腿垂感和自然动态。', P3: '表现休闲穿搭；请确认商品有口袋。', P6: '生活氛围更强，腰腹和膝盖会出现褶皱。', P12: '展示侧面轮廓与侧缝。', P13: '背对镜头、不回头，展示后腰、臀部与裤腿轮廓；图中仅示意方向。', P16: '展示坐姿搭配，保留台阶和接触阴影。' };
     el('poseDescription').textContent = poseTips[P3.pose] || '留意动作是否遮住商品，以及关键动作是否在画面内。';
     el('sceneDescription').textContent = scNow().why || '选择能衬托服装、不会抢走商品注意力的背景。';
     el('studioMode').value = extra.mode;
@@ -173,7 +176,7 @@
       <div class="studio-presets"><span>帮我搭一套</span><button type="button" data-preset="clean">清晰展示版型</button><button type="button" data-preset="daily">日常穿搭感</button><button type="button" data-preset="relaxed">轻松休闲感</button><button type="button" id="shufflePlan">换一组</button></div>
       <div class="studio-grid">
         <article class="studio-card"><div class="studio-card-title"><h3>01 人物</h3><label class="studio-lock"><input type="checkbox" id="lockperson">锁定参数</label></div><img id="quickPersonImage" alt="人物风格参考" loading="lazy"><div class="studio-card-body"><label>目标市场<select id="quickSite"></select></label><label>人物类型<select id="quickPerson"></select></label><p id="personDescription"></p></div></article>
-        <article class="studio-card"><div class="studio-card-title"><h3>02 动作</h3><label class="studio-lock"><input type="checkbox" id="lockpose">锁定动作</label></div><img id="quickPoseImage" alt="动作示意，实际画面由出图工具生成" loading="lazy"><div class="studio-card-body"><label>想让人物做什么？<select id="quickPose"></select></label><p id="poseDescription"></p></div></article>
+        <article class="studio-card"><div class="studio-card-title"><h3>02 动作</h3><label class="studio-lock"><input type="checkbox" id="lockpose">锁定动作</label></div><img id="quickPoseImage" alt="动作示意，实际画面由出图工具生成" loading="lazy"><div class="studio-card-body"><label>想让人物做什么？<select id="quickPose"></select></label><div class="studio-views" role="group" aria-label="展示方向"><button type="button" data-view-pose="P1" aria-pressed="false">正面</button><button type="button" data-view-pose="P12" aria-pressed="false">侧面</button><button type="button" data-view-pose="P13" aria-pressed="false">背面展示</button></div><p id="poseDescription"></p><p id="backReferenceHint" class="studio-back-hint" hidden>参考图模式下，请在出图工具中同时提供商品背面图；只有正面图时，不能准确还原后口袋、后腰和背面图案。</p></div></article>
         <article class="studio-card"><div class="studio-card-title"><h3>03 场景</h3><label class="studio-lock"><input type="checkbox" id="lockscene">锁定场景</label></div><img id="quickSceneImage" alt="场景氛围参考" loading="lazy"><div class="studio-card-body"><label>在哪里拍？<select id="quickScene"></select></label><p id="sceneDescription"></p></div></article>
       </div>
       <p class="studio-fine">图片用于参考人物风格、动作和氛围。锁定参数会复用描述；如需保持同一张脸，请在出图工具中使用人物参考图。</p>
@@ -193,6 +196,7 @@
     const summaryLine = document.createElement('p'); summaryLine.id = 'studioSummary'; summaryLine.className = 'studio-summary'; hero.before(summaryLine);
     el('quickSite').onchange = e => { const site = SITE.find(x => x.id === e.target.value); apply({ site: site.id, eth: site.eth }); };
     el('quickPerson').onchange = e => apply({ eth: e.target.value });
+    root.querySelectorAll('[data-view-pose]').forEach(b => b.onclick = () => apply({ pose: b.dataset.viewPose, frame: 'full' }));
     el('quickPose').onchange = e => apply({ pose: e.target.value });
     el('quickScene').onchange = e => apply({ scene: Number(e.target.value) });
     el('studioMode').onchange = e => { extra.mode = e.target.value; renderP3(); };
