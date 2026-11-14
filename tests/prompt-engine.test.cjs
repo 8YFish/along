@@ -91,7 +91,7 @@ function runtime(file, stored = null) {
   for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) vm.runInContext(match[1], context);
   // The wrapper is tested independently from DOM painting; the actual catalogue data stays loaded.
   vm.runInContext('renderP1=()=>{}; renderScn=()=>{}; renderP3=()=>{};', context);
-  for (const file of ['prompt-engine.js', 'studio.js'])
+  for (const file of ['prompt-engine.js', 'video-engine.js', 'studio.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'assets', file), 'utf8'), context);
   return { context, memory, run: code => vm.runInContext(code, context) };
 }
@@ -152,8 +152,8 @@ test('gender normalization preserves freeform product descriptions and notes', (
 test('rear views keep the camera behind the subject for every crop and gender', () => {
   for (const file of ['generated-images.html', 'generated-images-women.html']) {
     const app = runtime(file);
-    assert.equal(app.run("POSIMG.P13"), './assets/views/back.svg');
-    if (file.includes('women')) assert.equal(app.run("IMG('MC-01','back','A2','B1')"), './assets/views/back.svg');
+    assert.equal(app.run("POSIMG.P13"), file.includes('women') ? './assets/views/back-women.jpg' : './assets/views/back-men.jpg');
+    if (file.includes('women')) assert.equal(app.run("IMG('MC-01','back','A2','B1')"), './assets/views/back-women.jpg');
     for (const frame of ['full', 'auto', 'lower']) {
       app.run("Object.assign(P3,{pose:'P13',frame:'" + frame + "'});");
       const en = app.run('enPrompt()'), cn = app.run('cnPrompt()');
@@ -168,4 +168,84 @@ test('rear views keep the camera behind the subject for every crop and gender', 
     app.run("Object.assign(P3,{pose:'P8',frame:'full'});");
     assert.doesNotMatch(app.run('enPrompt()'), /Straight rear view/);
   }
+});
+const video = require('../assets/video-engine.js');
+test('video settings normalize old, corrupted and unsupported drafts', () => {
+  assert.deepEqual(video.normalize(), video.defaults);
+  assert.deepEqual(video.normalize({ duration:999, aspect:'2:3', motion:'<script>', camera:'orbit', source:'bad' }), video.defaults);
+  const selected = { source:'text',duration:8,aspect:'16:9',motion:'walk',camera:'track' };
+  assert.deepEqual(video.normalize(selected), selected);
+});
+test('video timeline covers the requested duration without gaps or overlaps', () => {
+  for (const duration of [5,8,10]) for (const motion of video.motions) {
+    const c = {...base, video:{duration,motion:motion.id}};
+    for (const lang of ['cn','en']) {
+      const phases = video.timeline(c,lang);
+      assert.equal(phases[0].start,0); assert.equal(phases[2].end,duration);
+      assert.equal(phases[0].end,phases[1].start); assert.equal(phases[1].end,phases[2].start);
+      assert.ok(phases.every(p=>p.end>p.start && p.text.length>10));
+    }
+  }
+});
+test('video requires product details only for text input and retains untranslated notes', () => {
+  assert.equal(video.issues({...base,video:{source:'text'}})[0].code,'video-product');
+  assert.equal(video.issues({...base,video:{source:'image'}}).length,0);
+  const c={...base, mode:'text', productCn:'米白色长裤',noteCn:'保留后口袋',video:{source:'text',duration:8,aspect:'16:9'}};
+  const en=video.build(c,'en',engine);
+  assert.match(en,/8 seconds/);assert.match(en,/16:9/);assert.match(en,/米白色长裤/);assert.match(en,/保留后口袋/);
+  assert.doesNotMatch(en,/vertical 2:3|product photograph/);
+  const image=video.build({...base,mode:'text',video:{source:'image'}},'en',engine);
+  assert.match(image,/provided complete model-and-product hero image/);
+});
+test('walking and standing turns do not conflict with seated or crouched poses', () => {
+  for (const pose of ['P6','P9','P16']) for (const motion of ['walk','turn']) {
+    assert.equal(video.issues({...base,pose,video:{motion}})[0].code,'video-motion');
+    assert.match(video.build({...base,pose,video:{motion}},'en',engine),/^Resolve/);
+  }
+  assert.equal(video.issues({...base,pose:'P6',video:{motion:'auto'}}).length,0);
+});
+test('rear video stays rear-facing for every motion, camera and gender', () => {
+  for (const file of ['generated-images.html','generated-images-women.html']) {
+    const app=runtime(file);
+    const state={version:1,p3:{pose:'P13',frame:'full'},extra:{output:'video',video:{source:'image',duration:8,aspect:'9:16'}}};
+    const restored=runtime(file,state);
+    assert.match(restored.run('enPrompt()'),/VIEW LOCK: Stay rear-facing throughout/);
+    assert.match(restored.run('cnPrompt()'),/方向锁定：全程背对镜头/);
+    for (const motion of video.motions) for (const camera of video.cameras) {
+      const v={source:'image',duration:5,aspect:'9:16',motion:motion.id,camera:camera.id};
+      const c={...base,pose:'P13',back:true,gender:file.includes('women')?'women':'men',video:v};
+      const en=video.build(c,'en',engine),cn=video.build(c,'cn',engine);
+      assert.match(en,/rear-facing throughout/);assert.match(cn,/全程背对镜头/);
+      assert.doesNotMatch(en,/undefined|NaN/); assert.doesNotMatch(cn,/undefined|NaN/);
+      if(motion.id==='walk') assert.match(en,/away from the camera/);
+      if(motion.id==='turn') assert.match(en,/at most 15 degrees/);
+    }
+  }
+});
+test('new video drafts round-trip without storing local image bytes or changing old image defaults', () => {
+  const prior={version:1,p3:{pose:'P1',frame:'full'},extra:{mode:'reference'}};
+  assert.match(runtime('generated-images.html',prior).run('enPrompt()'),/^TASK: Create one photorealistic fashion product photograph/);
+  const state={...prior,extra:{output:'video',video:{source:'text',duration:10,aspect:'1:1',camera:'push',motion:'fabric'},productCn:'深蓝色长裤'}};
+  for(const file of ['generated-images.html','generated-images-women.html']) {
+    const app=runtime(file,state); app.run('renderP3()');
+    const snapshot=JSON.parse([...app.memory.values()][0]);
+    assert.equal(snapshot.extra.output,'video');assert.equal(snapshot.extra.video.duration,10);assert.equal(snapshot.extra.video.aspect,'1:1');
+    assert.doesNotMatch(JSON.stringify(snapshot),/blob:|base64|referenceUrl|back-men.jpg/);
+    assert.match(runtime(file,snapshot).run('enPrompt()'),/10 seconds/);
+  }
+});
+test('real-person rear assets are local JPEG files and no page references the diagram', () => {
+  for(const kind of ['men','women']) {
+    const image=fs.readFileSync(path.join(__dirname,'..','assets','views','back-'+kind+'.jpg'));
+    assert.equal(image[0],0xff);assert.equal(image[1],0xd8);assert.ok(image.length>10000);
+    const html=fs.readFileSync(path.join(__dirname,'..',kind==='men'?'generated-images.html':'generated-images-women.html'),'utf8');
+    assert.doesNotMatch(html,/assets\/views\/back.svg/);assert.match(html,/assets\/video-engine.js/);
+  }
+});
+
+test('video scene wording cannot override a selected landscape format', () => {
+  const c={...base,sceneCn:'竖版棚拍，柔和窗光。',sceneEn:'Vertical 2:3 studio photograph. Soft window light.',video:{source:'image',aspect:'16:9'}};
+  const en=video.build(c,'en',engine),cn=video.build(c,'cn',engine);
+  assert.match(en,/Aspect ratio: 16:9/); assert.doesNotMatch(en,/Vertical 2:3/);
+  assert.match(cn,/画幅 16:9/); assert.doesNotMatch(cn,/竖版棚拍/);
 });

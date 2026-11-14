@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="./assets/studio.css">
+<link rel="stylesheet" href="./assets/studio.css?v=20261114">
 <title>女装 · AI 出图 · 商家上手</title>
 <style>
 :root{--ink:#1a1815;--ink2:#3d3831;--mute:#8a8177;--line:#e2dbcf;--paper:#fdfbf7;--tan:#b08d57;--warn:#8a3b2a;--serif:"Songti SC","Source Han Serif SC",Georgia,serif;--sans:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;--mono:"SF Mono",Menlo,Consolas,monospace}
@@ -590,7 +590,7 @@ const POSE_PHOTOS = {
  'P10':'https://images.pexels.com/photos/6599121/pexels-photo-6599121.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P11':'https://images.pexels.com/photos/7752438/pexels-photo-7752438.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P12':'https://images.pexels.com/photos/7752456/pexels-photo-7752456.jpeg?auto=compress&cs=tinysrgb&w=500',
- 'P13':"./assets/views/back.svg",
+ 'P13':"./assets/views/back-women.jpg",
  'P14':'https://images.pexels.com/photos/7544666/pexels-photo-7544666.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P15':'https://images.pexels.com/photos/7275390/pexels-photo-7275390.jpeg?auto=compress&cs=tinysrgb&w=500',
  'P16':'https://images.pexels.com/photos/7626600/pexels-photo-7626600.jpeg?auto=compress&cs=tinysrgb&w=500',
@@ -598,7 +598,7 @@ const POSE_PHOTOS = {
  'P18':'https://images.pexels.com/photos/28386380/pexels-photo-28386380.jpeg?auto=compress&cs=tinysrgb&w=500'
 };
 const ANGIMG = new Proxy({}, {get:(_,eth)=>new Proxy({}, {get:(_,ang)=>new Proxy({}, {
- get:(_,variant)=>ang==='back' ? './assets/views/back.svg' : (MODEL_PHOTOS[eth] || MODEL_PHOTOS['MC-01'])
+ get:(_,variant)=>ang==='back' ? './assets/views/back-women.jpg' : (MODEL_PHOTOS[eth] || MODEL_PHOTOS['MC-01'])
 })})});
 const POSIMG = new Proxy({}, {get:(_,pose)=>POSE_PHOTOS[pose] || MODEL_PHOTOS['MC-01']});
 const SCNIMG = {"S1": "./assets/gallery/140ace51d5927640da95.jpg", "S2": "./assets/gallery/c3017d70427439311627.jpg", "S3": "./assets/gallery/2688424ad4337c72939e.jpg", "S5": "./assets/gallery/2d93866932278f9ec8df.jpg", "S6": "./assets/gallery/1acf2e6184d5449474c9.jpg", "S9": "./assets/gallery/2b83a0986c2140d9ba00.jpg", "S10": "./assets/gallery/9fccbce8f2796f18db8d.jpg", "S13": "./assets/gallery/86d818a4bbc4e7959a23.jpg", "S14": "./assets/gallery/f246c481ad3281d05526.jpg", "S15": "./assets/gallery/9d6445021702a46e8792.jpg", "S17": "./assets/gallery/8c5bacf660818c32b2fd.jpg", "S19": "./assets/gallery/f399a5172c1af7014809.jpg", "S20": "./assets/gallery/e3be1c5c22201eabf640.jpg", "S23": "./assets/gallery/60b0efa05b7427944981.jpg", "S34": "./assets/gallery/3af0f6676604e0b70634.jpg", "S35": "./assets/gallery/06f1ac0c2fc232ff09e9.jpg", "S37": "./assets/gallery/9430575e1c52a537cf64.jpg", "S38": "./assets/gallery/374db93eb1ff2b1a26cf.jpg", "S39": "./assets/gallery/c39fb6537134e59c8bf3.jpg", "S40": "./assets/gallery/823823cf56372195afcf.jpg", "S41": "./assets/gallery/672f32fbf954eeecb01b.jpg", "S42": "./assets/gallery/61b8434c5ef47418d1c3.jpg", "S44": "./assets/gallery/ad2d41b027a542711b2d.jpg", "S45": "./assets/gallery/95340f486e786d05d896.jpg", "S47": "./assets/gallery/0d38aa984e88a80d0d18.jpg", "S48": "./assets/gallery/052e7f4bd8c6ed35bd66.jpg"};
@@ -1365,7 +1365,7 @@ const MXCODE = {'MC-01':'EUW','MC-02':'BLK','MC-03':'EAS','MC-04':'LAT','MC-05':
 const MXAGE = {A1:'25', A2:'35', A3:'45'};
 const mkKey = (e,a,b)=> (MXCODE[e]||'EUW')+'-'+(MXAGE[a]||'35')+'-'+(b==='B2'?'MUS':'NOR');
 const IMG = (eth, ang, age, build) => {
-  if (ang === 'back') return './assets/views/back.svg';
+  if (ang === 'back') return './assets/views/back-women.jpg';
   const code = MODEL_PHOTOS[eth] ? eth : 'MC-01';
   return MODEL_PHOTOS[code];
 };
@@ -2381,7 +2381,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 })();
 
 </script>
-<script src="./assets/prompt-engine.js"></script>
-<script src="./assets/studio.js"></script>
+<script src="./assets/prompt-engine.js?v=20261114"></script>
+<script src="./assets/video-engine.js?v=20261114"></script>
+<script src="./assets/studio.js?v=20261114"></script>
 </body>
 </html>
