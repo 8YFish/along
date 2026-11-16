@@ -39,12 +39,12 @@ body{min-height:100vh;display:flex;flex-direction:column}
 <header class="topbar">
  <div class="brand"><div class="logo">A</div><div><div class="brand-name">ALONG / FASHION STUDIO</div><div class="brand-sub">图片与视频提示词工作台</div></div></div>
  <nav class="selector" role="tablist" aria-label="服装分类">
-  <button class="tab active" id="menTab" role="tab" aria-selected="true" aria-controls="appFrame" data-src="./generated-images.html">男装 <span class="en">MEN</span></button>
-  <button class="tab" id="womenTab" role="tab" aria-selected="false" aria-controls="appFrame" data-src="./generated-images-women.html">女装 <span class="en">WOMEN</span></button>
+  <button class="tab active" id="menTab" role="tab" aria-selected="true" aria-controls="appFrame" data-src="./generated-images.html?v=20261116">男装 <span class="en">MEN</span></button>
+  <button class="tab" id="womenTab" role="tab" aria-selected="false" aria-controls="appFrame" data-src="./generated-images-women.html?v=20261116">女装 <span class="en">WOMEN</span></button>
  </nav>
 </header>
 <main class="frame-wrap">
- <iframe id="appFrame" title="Along 男装 AI 提示词工作台" src="./generated-images.html"></iframe>
+ <iframe id="appFrame" title="Along 男装 AI 提示词工作台" src="./generated-images.html?v=20261116"></iframe>
 </main>
 <script>
 const frame=document.getElementById("appFrame");

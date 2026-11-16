@@ -327,7 +327,7 @@
     };
     // Refresh cached tabs when the browser back/forward buttons change the hash.
     window.addEventListener('hashchange', () => { const id = location.hash.slice(1); if (['t1','t2','t3'].includes(id)) showTab(id, false); });
-    workflow = AlongWorkflow.mount({
+    if (typeof AlongWorkflow !== 'undefined') workflow = AlongWorkflow.mount({
       gender: female ? 'women' : 'men', context,
       issues: () => AlongPrompt.issues(context()).filter(x => x.code !== 'product').concat(AlongVideo.issues(context())),
       product: value => { extra.product = value; persist(); },
