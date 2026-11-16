@@ -124,5 +124,15 @@
       'PARAMETERS: Duration and aspect ratio are creative targets. Select supported values in the video generation tool.'
     ]).filter(Boolean).join('\n\n');
   }
-  return { defaults, motions, cameras, normalize, issues, timeline, build };
+  function compact(c) {
+    const v=normalize(c.video);
+    return [
+      'Single continuous photorealistic fashion product shot. Use the supplied first frame. Preserve the exact person, garment, setting and light.',
+      action(c,v,false)+'.', camera(v,false)+'.',
+      c.back ? 'Rear view throughout. Body and head face away; no front reveal.' : 'Keep the first-frame viewing angle.',
+      c.crop==='lower' ? 'Keep waistband-to-shoes crop. No upper body in frame.' : 'Keep the first-frame crop and all product edges visible.',
+      'Preserve garment colour, cut, pockets, patterns and fabric texture. Grounded feet, natural fabric motion. No morphing, flicker, cuts, text or new marks.'
+    ].join(' ');
+  }
+  return { defaults, motions, cameras, normalize, issues, timeline, build, compact };
 });

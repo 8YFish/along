@@ -249,3 +249,21 @@ test('video scene wording cannot override a selected landscape format', () => {
   assert.match(en,/Aspect ratio: 16:9/); assert.doesNotMatch(en,/Vertical 2:3/);
   assert.match(cn,/画幅 16:9/); assert.doesNotMatch(cn,/竖版棚拍/);
 });
+
+test('supplier prompt fits the selected provider limit for all motions, views and cameras', () => {
+  for(const motion of video.motions) for(const camera of video.cameras) for(const back of [true,false]) {
+    const text=video.compact({...base,back,video:{motion:motion.id,camera:camera.id}});
+    assert.ok(text.length<=1000,text.length); assert.doesNotMatch(text,/undefined|NaN/);
+    if(back) assert.match(text,/Rear view throughout/);
+  }
+});
+test('product identifiers round-trip with plans while restoring an old plan clears them', () => {
+  for(const file of ['generated-images.html','generated-images-women.html']) {
+    const state={version:1,p3:{pose:'P1',frame:'full'},extra:{product:{name:'棉麻长裤',sku:'AL-001'},output:'video'}};
+    const app=runtime(file,state);app.run('renderP3()');
+    const draft=JSON.parse([...app.memory.values()][0]);
+    assert.equal(draft.extra.product.name,'棉麻长裤');assert.equal(draft.extra.product.sku,'AL-001');
+    const prior=runtime(file,{version:1,p3:{},extra:{}});prior.run('renderP3()');
+    const old=JSON.parse([...prior.memory.values()][0]);assert.equal(old.extra.product.name,'');
+  }
+});

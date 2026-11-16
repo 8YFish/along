@@ -4,10 +4,10 @@
   const female = document.title.startsWith('女装');
   const storageKey = 'along.studio.v1.' + (female ? 'women' : 'men');
   const savedKey = storageKey + '.saved';
-  const defaults = { mode: 'reference', productCn: '', productEn: '', noteEn: '', output: 'image', video: AlongVideo.normalize(), locks: { person: false, pose: false, scene: false } };
+  const defaults = { mode: 'reference', productCn: '', productEn: '', noteEn: '', output: 'image', product: {name:'',sku:''}, video: AlongVideo.normalize(), locks: { person: false, pose: false, scene: false } };
   let extra = JSON.parse(JSON.stringify(defaults));
   let storageOK = true, saved = [];
-  let referenceUrl = '', referenceName = '', referenceRequest = 0;
+  let referenceUrl = '', referenceName = '', referenceRequest = 0, referenceFile = null, workflow = null;
   const el = id => document.getElementById(id);
   const original = { person: renderP1, scene: renderScn, main: renderP3, tab: showTab };
   const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -29,9 +29,10 @@
     if (Number.isInteger(p.scene) && SCN[p.scene]) clean.scene = p.scene;
     clean.outfit = typeof p.outfit === 'string' ? p.outfit.slice(0, 2000) : '';
     const x = source.extra || {};
-    const options = { ...defaults, video: AlongVideo.normalize(x.video), locks: { ...defaults.locks } };
+    const options = { ...defaults, product: {name:'',sku:''}, video: AlongVideo.normalize(x.video), locks: { ...defaults.locks } };
     options.output = x.output === 'video' ? 'video' : 'image';
     options.mode = x.mode === 'text' ? 'text' : 'reference';
+    for (const key of ['name','sku']) options.product[key] = typeof x.product?.[key] === 'string' ? x.product[key].slice(0,80) : '';
     for (const key of ['productCn', 'productEn', 'noteEn']) options[key] = typeof x[key] === 'string' ? x[key].slice(0, 2000) : '';
     for (const key of ['person', 'pose', 'scene']) options.locks[key] = !!(x.locks && x.locks[key] === true);
     return { p3: clean, extra: options };
@@ -126,7 +127,7 @@
     el('videoReference').closest('.studio-reference').hidden = extra.video.source !== 'image';
     el('studioMode').closest('.studio-task').hidden = isVideo;
     el('outputTitle').textContent = isVideo ? '视频提示词 · 直接复制' : '主图提示词 · 直接复制';
-    el('outputNote').textContent = isVideo ? '复制到视频生成工具使用；本页生成脚本和提示词，不生成或上传视频。' : '中英文稿包含必要排除项，复制一段即可。';
+    el('outputNote').textContent = isVideo ? '可复制到外部工具；也可确认主图并连接私有服务生成视频。' : '中英文稿包含必要排除项，复制一段即可。';
     el('poseImageCredit').hidden = P3.pose !== 'P13';
     el('poseImageCredit').href = female ? 'https://www.pexels.com/photo/a-woman-walking-on-the-street-12894366/' : 'https://www.pexels.com/photo/back-view-of-a-man-wearing-blue-denim-jeans-12808319/';
     el('poseImageCredit').textContent = female ? '真人参考来源：Julio Lopez / Pexels' : '真人参考来源：Mushtaq Hussain / Pexels';
@@ -142,6 +143,7 @@
     el('studioSummary').textContent = [isVideo ? ('视频 / ' + extra.video.duration + ' 秒 / ' + extra.video.aspect + ' / ' + (extra.video.source === 'image' ? '图生视频' : '文生视频')) : (extra.mode === 'reference' ? '商品参考图' : '凭描述生成'), ethOf(P3.eth).short, posOf(P3.pose).name, scNow().t, P3.frame === 'auto' ? '自动构图' : (CROPS.find(x => x.id === P3.frame) || {}).n].join(' / ');
     el('draftHint').textContent = storageOK ? '选择自动保存在此浏览器；男女装分别保存。' : '浏览器暂时无法保存；可以继续使用并复制提示词。';
     paintSaved();
+    if (workflow) workflow.update();
     // Existing div chips also support keyboard interaction.
     document.querySelectorAll('.chip:not(.dis)').forEach(chip => {
       chip.tabIndex = 0; chip.setAttribute('role', 'button'); chip.setAttribute('aria-pressed', String(chip.classList.contains('on')));
@@ -203,7 +205,7 @@
       <div class="studio-heading"><div><span class="studio-eyebrow">QUICK START</span><h2>选出你想要的画面</h2><p>先用一套搭配开始，再换人物、动作或场景。提示词实时生成。</p></div><span class="studio-badge">无需编写提示词</span></div>
       <div class="studio-output" role="group" aria-label="创作类型"><button type="button" data-output="image" aria-pressed="true">图片提示词</button><button type="button" data-output="video" aria-pressed="false">视频提示词</button></div>
       <section id="videoPanel" class="studio-video" aria-label="视频提示词设置" hidden>
-        <div class="studio-video-heading"><div><h3>让商品动起来</h3><p>延续当前人物、动作和场景，规划一段连续镜头。这里先生成视频提示词与时间轴。</p></div><span class="studio-badge">无需接入模型</span></div>
+        <div class="studio-video-heading"><div><h3>让商品动起来</h3><p>延续当前人物、动作和场景，规划一段连续镜头。这里先生成视频提示词与时间轴。</p></div><span class="studio-badge">提示词可直接使用</span></div>
         <div class="studio-video-options">
           <label>输入方式<select id="videosource"><option value="image">图生视频 · 推荐先出商品主图</option><option value="text">文生视频 · 根据服装描述</option></select></label>
           <label>目标时长<select id="videoduration"><option value="5">5 秒</option><option value="8">8 秒</option><option value="10">10 秒</option></select></label>
@@ -211,7 +213,7 @@
           <label>人物动态<select id="videomotion"></select></label>
           <label>镜头运动<select id="videocamera"></select></label>
         </div>
-        <div class="studio-reference"><div><label>首帧参考图（可选，仅本地预览）<input type="file" id="videoReference" accept="image/jpeg,image/png,image/webp"></label><p>选一张完整的人物商品主图；建议先确认版型、脸和背景，再用它生成视频。图片不会上传，也不会随方案保存。</p><button type="button" id="clearReference" disabled>清除预览</button><p id="referenceStatus" role="status" aria-live="polite"></p></div><img id="videoReferencePreview" alt="你选择的本地首帧参考图" hidden></div>
+        <div class="studio-reference"><div><label>视频首帧 · 先本地预览<input type="file" id="videoReference" accept="image/jpeg,image/png,image/webp"></label><p>选一张完整的人物商品主图；建议先确认版型、脸和背景，再用它生成视频。图片先在本地预览，不随方案保存；只有授权并点击“生成商品视频”后，才会提交至已连接服务。</p><button type="button" id="clearReference" disabled>清除预览</button><p id="referenceStatus" role="status" aria-live="polite"></p></div><img id="videoReferencePreview" alt="你选择的本地首帧参考图" hidden></div>
         <p class="studio-fine">时长和画幅是创作目标，请在实际生成工具中选择支持的参数。背面视频保持背对镜头；仅有正面图时不建议生成 360° 转身。</p>
         <h4>连续镜头时间轴</h4><ol id="videoTimeline" class="studio-timeline"></ol>
       </section>
@@ -251,7 +253,8 @@
     };
     const clearReference = () => {
       referenceRequest++; if (referenceUrl) URL.revokeObjectURL(referenceUrl);
-      referenceUrl = ''; referenceName = ''; el('videoReference').value = '';
+      referenceUrl = ''; referenceName = ''; referenceFile = null; el('videoReference').value = '';
+      if (workflow) workflow.reference(null);
       el('videoReferencePreview').removeAttribute('src'); el('videoReferencePreview').hidden = true;
       el('clearReference').disabled = true; el('referenceStatus').textContent = '本地参考图已清除。';
     };
@@ -267,10 +270,11 @@
         await image.decode();
         if (request !== referenceRequest) { URL.revokeObjectURL(url); return; }
         if (referenceUrl) URL.revokeObjectURL(referenceUrl);
-        referenceUrl = url; referenceName = file.name;
+        referenceUrl = url; referenceName = file.name; referenceFile = file;
+        if (workflow) workflow.reference(file);
         el('videoReferencePreview').src = url; el('videoReferencePreview').hidden = false;
         el('clearReference').disabled = false;
-        el('referenceStatus').textContent = '已在本地预览：' + referenceName + '。刷新后需重新选择；生成视频时请在出图工具中再次提供此图。';
+        el('referenceStatus').textContent = '已在本地预览：' + referenceName + '。刷新后需重新选择；生成视频时请在外部工具中提供此图，或完成下方主图确认后连接生成服务。';
       } catch (_) { URL.revokeObjectURL(url); if (request === referenceRequest) { e.target.value = ''; el('referenceStatus').textContent = '图片无法解码，请重新选择有效图片。'; } }
     };
     window.addEventListener('pagehide', () => { referenceRequest++; if (referenceUrl) URL.revokeObjectURL(referenceUrl); });
@@ -286,7 +290,7 @@
     }
     el('cOutfit').addEventListener('input', () => updateText());
     function updateText() {
-      refreshOutput(); persist();
+      refreshOutput(); persist(); if (workflow) workflow.update();
     }
     for (const key of ['person', 'pose', 'scene']) el('lock' + key).onchange = e => { extra.locks[key] = e.target.checked; persist(); };
     root.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => preset(b.dataset.preset));
@@ -302,7 +306,7 @@
       P3.frame = 'full'; renderP3(); message('已换一组搭配，锁定的项目保持当前选择。');
     };
     el('savePlan').onclick = () => {
-      const name = el('planName').value.trim() || [ethOf(P3.eth).short, posOf(P3.pose).name, scNow().t].join(' · ');
+      const name = el('planName').value.trim() || [extra.product.name, extra.product.sku, ethOf(P3.eth).short, posOf(P3.pose).name, scNow().t].filter(Boolean).join(' · ');
       const state = { ...snapshot(), name, createdAt: Date.now() };
       const next = [state, ...saved].slice(0, 12);
       if (!write(savedKey, next)) { message('保存失败：浏览器存储不可用或空间不足，请先复制提示词。'); return; }
@@ -311,7 +315,7 @@
     el('loadPlan').onclick = () => {
       if (el('savedPlans').value === '') { message('请先选择要载入的方案。'); return; }
       const entry = saved[Number(el('savedPlans').value)]; if (!entry) return;
-      const hadReference = !!referenceUrl; if (hadReference) clearReference();
+      const hadReference = !!referenceUrl; if (workflow) workflow.reset(); else if (hadReference) clearReference();
       const state = validState(entry); Object.assign(P3, state.p3); extra = state.extra;
       fromMain(); last = fingerprints(); renderP3(); message('已载入“' + entry.name + '”。' + (hadReference ? '请重新选择此方案的首帧参考图。' : ''));
     };
@@ -323,6 +327,13 @@
     };
     // Refresh cached tabs when the browser back/forward buttons change the hash.
     window.addEventListener('hashchange', () => { const id = location.hash.slice(1); if (['t1','t2','t3'].includes(id)) showTab(id, false); });
+    workflow = AlongWorkflow.mount({
+      gender: female ? 'women' : 'men', context,
+      issues: () => AlongPrompt.issues(context()).filter(x => x.code !== 'product').concat(AlongVideo.issues(context())),
+      product: value => { extra.product = value; persist(); },
+      clearReference,
+      compactPrompt: () => AlongVideo.compact(context())
+    });
     paint();
   }
   // Register after the catalogue's own DOMContentLoaded handler initializes its libraries.
